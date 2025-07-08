@@ -224,7 +224,7 @@ class UrlGuardService : AccessibilityService() {
     }
 
 
-    private fun startOverlayVerificationBadgeService(url: String) {
+    fun startOverlayVerificationBadgeService(url: String) {
         val intent = Intent(this, VerifiedBadgeOverlayService::class.java).apply {
             putExtra("URL", extractAndCacheDomain(domainCache, url))
         }

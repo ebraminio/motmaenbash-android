@@ -61,8 +61,10 @@ android {
         }
     }
 
-    kotlin {
-        jvmToolchain(8)
+    compileOptions {
+        val javaVersion = JavaVersion.VERSION_21
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
     }
 }
 
@@ -80,6 +82,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.messaging)
+    implementation(libs.androidx.lifecycle.service)
     releaseImplementation(libs.firebase.crashlytics)
     implementation(libs.firebase.perf)
 

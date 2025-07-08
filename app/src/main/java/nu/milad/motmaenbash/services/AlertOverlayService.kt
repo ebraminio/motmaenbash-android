@@ -1,6 +1,5 @@
 package nu.milad.motmaenbash.services
 
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -25,7 +24,7 @@ import nu.milad.motmaenbash.utils.AudioHelper
 import nu.milad.motmaenbash.utils.UrlUtils
 import java.util.concurrent.atomic.AtomicLong
 
-class AlertOverlayService : Service() {
+class AlertOverlayService : ViewReadyService() {
     private var windowManager: WindowManager? = null
     private val overlayViews = mutableMapOf<Long, View>()
     private lateinit var audioHelper: AudioHelper
@@ -35,7 +34,7 @@ class AlertOverlayService : Service() {
         private const val tag = "AlertOverlayService"
 
         fun showAlert(context: Context, suspiciousUrl: SuspiciousUrl) {
-            
+
             val intent = Intent(context, AlertOverlayService::class.java).apply {
                 putExtra(
                     "url",
@@ -51,7 +50,8 @@ class AlertOverlayService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val url = intent?.getStringExtra("url") ?: return START_NOT_STICKY
+        val url =
+            intent?.getStringExtra("url") ?: return super.onStartCommand(intent, flags, startId)
         val threatTypeName = intent.getStringExtra("threatType")
         val threatType = threatTypeName?.let { ThreatType.valueOf(it) }
         val isSpecificUrl = intent.getBooleanExtra("isSpecificUrl", false)
@@ -118,7 +118,7 @@ class AlertOverlayService : Service() {
             Log.e(tag, "Error creating overlay", e)
         }
 
-        return START_NOT_STICKY
+        return super.onStartCommand(intent, flags, startId)
     }
 
 
@@ -138,9 +138,6 @@ class AlertOverlayService : Service() {
             Log.e(tag, "Error removing specific overlay view", e)
         }
     }
-
-
-    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         try {

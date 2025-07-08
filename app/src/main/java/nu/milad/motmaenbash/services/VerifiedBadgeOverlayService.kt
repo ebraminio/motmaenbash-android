@@ -1,12 +1,10 @@
 package nu.milad.motmaenbash.services
 
 import android.animation.ValueAnimator
-import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
-import android.os.IBinder
 import android.os.Looper
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -14,10 +12,20 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import nu.milad.motmaenbash.R
 
-class VerifiedBadgeOverlayService : Service() {
+class VerifiedBadgeOverlayService : ViewReadyService() {
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
     private var statusTextView: TextView? = null
@@ -26,15 +34,20 @@ class VerifiedBadgeOverlayService : Service() {
     private var currentTextIndex = 0
     private val statusTexts = arrayOf("درگاه پرداخت معتبر", "مطمئن باش!")
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
-    }
-
     override fun onCreate() {
         super.onCreate()
 
         mFloatingView =
             LayoutInflater.from(this).inflate(R.layout.overlay_verification_badge, null, false)
+        mFloatingView?.findViewById<LinearLayout>(R.id.root_container)?.let {
+            it.setViewTreeLifecycleOwner(this)
+            it.setViewTreeSavedStateRegistryOwner(this)
+            val view = ComposeView(this)
+            it.addView(view, 0)
+            view.setContent {
+                Text("ComposeView")
+            }
+        }
 
 
         // Calculate screen width and desired margins
@@ -116,7 +129,7 @@ class VerifiedBadgeOverlayService : Service() {
             val urlTextView = mFloatingView?.findViewById<TextView>(R.id.url_text_view)
             urlTextView?.text = url
         }
-        return START_NOT_STICKY
+        return super.onStartCommand(intent, flags, startId)
     }
 
     private fun startTextAnimation() {
@@ -176,5 +189,17 @@ class VerifiedBadgeOverlayService : Service() {
             mWindowManager?.removeViewImmediate(mFloatingView)
             mFloatingView = null
         }
+    }
+}
+
+// https://gist.github.com/kishan-vadoliya/9fbd1e3c1590de1e4a1a830c5d4edb3f
+abstract class ViewReadyService : LifecycleService(), SavedStateRegistryOwner, ViewModelStoreOwner {
+    private val savedStateRegistryController by lazy { SavedStateRegistryController.create(this) }
+    private val internalViewModelStore by lazy { ViewModelStore() }
+    override val savedStateRegistry get() = savedStateRegistryController.savedStateRegistry
+    override val viewModelStore get() = internalViewModelStore
+    override fun onCreate() {
+        super.onCreate()
+        savedStateRegistryController.performRestore(null)
     }
 }

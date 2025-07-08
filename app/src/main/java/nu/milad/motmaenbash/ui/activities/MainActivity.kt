@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import nu.milad.motmaenbash.consts.AppConstants.PREF_KEY_INTRO_SHOWN
 import nu.milad.motmaenbash.consts.NavRoutes
 import nu.milad.motmaenbash.consts.Pages
+import nu.milad.motmaenbash.services.VerifiedBadgeOverlayService
 import nu.milad.motmaenbash.ui.screens.AboutScreen
 import nu.milad.motmaenbash.ui.screens.AppScanScreen
 import nu.milad.motmaenbash.ui.screens.InfoListScreen
@@ -32,6 +33,7 @@ import nu.milad.motmaenbash.ui.screens.UrlScanScreen
 import nu.milad.motmaenbash.ui.screens.UserReportScreen
 import nu.milad.motmaenbash.ui.theme.MotmaenBashTheme
 import nu.milad.motmaenbash.utils.ServiceUtils
+import nu.milad.motmaenbash.utils.UrlUtils.extractAndCacheDomain
 import nu.milad.motmaenbash.utils.dataStore
 
 class MainActivity : ComponentActivity() {
@@ -41,6 +43,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         actionBar?.hide()
+
+        val intent = Intent(this, VerifiedBadgeOverlayService::class.java).apply {
+            putExtra("URL", "google.com")
+        }
+        startService(intent)
 
         lifecycleScope.launch {
 
